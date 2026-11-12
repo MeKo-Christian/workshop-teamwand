@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Teamwand</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="header">
+      <h1>Teamwand</h1>
+      <p class="subtitle">Wer war beim Git-Workshop dabei?</p>
+    </header>
+
+    <main>
+      <ul id="wall" class="wall"></ul>
+    </main>
+
+    <footer class="footer">
+      <span id="version"></span>
+    </footer>
+
+    <!-- Classic scripts, no modules: the page also works when opened via file:// -->
+    <script src="version.js"></script>
+    <script src="team.js"></script>
+    <script src="lib.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,77 @@
+:root {
+  --green: #4d7a17;
+  --text: #2b2b2b;
+  --muted: #6b6b6b;
+  --bg: #f6f7f4;
+  --card: #ffffff;
+  --border: #e3e5df;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.header {
+  padding: 2rem 1rem 1rem;
+  text-align: center;
+}
+
+.header h1 {
+  margin: 0;
+  color: var(--green);
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+
+.wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+  list-style: none;
+}
+
+.card {
+  padding: 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.card .emoji {
+  font-size: 2rem;
+}
+
+.card .name {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+}
+
+.card .login {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.card .motto {
+  margin: 0.5rem 0 0;
+  font-style: italic;
+}
+
+.footer {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.875rem;
+}

@@ -1,0 +1,25 @@
+name: release-please
+
+# Keeps one release PR open that collects the changelog from the squash-merged
+# PR titles. Merging it bumps version.txt and version.js, tags the release and
+# publishes it. The page itself is deployed by pages.yaml on every push to main.
+#
+# Uses the built-in GITHUB_TOKEN, so the repository setting "Allow GitHub
+# Actions to create and approve pull requests" must be on. Runs started by that
+# token do not trigger other workflows; pushing to the release PR branch (or
+# closing and reopening it) runs CI on it.
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v5
