@@ -7,19 +7,20 @@ the group walks it through the flow **together, stage by stage**: short
 explanation, do it, short debrief, next stage.
 
 feature branch → conventional commits → pull request via `gh` → CI (format,
-lint, tests, PR title) → AI review → human review → squash merge → GitHub Pages →
+lint, tests, PR title) → optional AI review → human review → squash merge → GitHub Pages →
 release-please PR → merge → new version on the page.
 
-In this public copy one GitHub Pages site plays both stages of the original
-MeKo setup: every merge to `main` updates it ("staging"), and merging the
-release PR shows the new version in the footer ("prod"). The deck and handout
-still name the two stages, because that is the flow participants meet in real
-projects.
+One GitHub Pages site serves the whole flow: every merge to `main` updates it
+(stage 6, "Merge & Deployment"), and merging the release PR shows the new
+version in the footer (stage 7, "Release"). The deck mentions once that real
+projects usually split this into staging and prod.
 
-Participants know the Git basics. They have a GitHub account, `gh`, an AI
-agent and the Claude app; some have VSCode. **No local toolchain is needed**:
-the playground is plain HTML and JavaScript that opens from `file://`, and CI
-is the quality gate.
+**No prior Git knowledge is assumed.** The deck explains clone, `main`,
+branch, commit, pull request and CI as they come up. Participants need a
+GitHub account (with the repository invitation accepted), Git, an editor such
+as VS Code and a browser. An AI assistant (Copilot, Claude Code, …) is
+optional. **No local toolchain is needed**: the playground is plain HTML and
+JavaScript that opens from `file://`, and CI is the quality gate.
 
 ## Contents
 
@@ -30,7 +31,7 @@ is the quality gate.
 | `issues/1x-*.md`                  | Bonus feature issues for fast finishers and later practice                         |
 | `scripts/setup-playground.sh`     | Creates the repo, settings, ruleset, access, issues, demo branches                 |
 | `scripts/reset-playground.sh`     | Closes leftovers and opens a reset PR back to the baseline                         |
-| `spickzettel.md`                  | Participant cheat sheet with prompts (German)                                      |
+| `spickzettel.md`                  | Participant cheat sheet: commands and prompts per stage (German)                   |
 | `slides/git-workshop-handout.typ` | Participant handout, 4 pages, take-aways only (PDF next to it)                     |
 | `slides/git-workshop.typ`         | Deck (German, PDF next to it), see [Slides](#slides)                               |
 
@@ -92,25 +93,28 @@ Deliberately not included: `pr-auto-rebase` (it would resolve the Stage 6
 conflicts before anyone sees them) and Dependabot (bump PRs would mix into the
 participants' queue).
 
-## Agenda (~105 min)
+## Agenda (~115 min)
 
 One pass through the whole flow, cut into seven stages. Each stage has a
 section slide with the stage bar, at most one or two short explanation slides
-and an exercise slide with a time box. Exercises are short **agent prompts**
-plus one thing to check by yourself; the slides show no terminal commands. Wait at the end of each stage until everyone
-is through; whoever is fast reviews a neighbour's state or helps.
+and an exercise slide with a time box. Each exercise slide has two columns: on
+the left the **git commands and clicks on github.com**, on the right the
+same steps as **prompts for an AI assistant**, plus one thing to check by
+yourself. Participants pick either column. Wait at the end of each stage
+until everyone is through; whoever is fast reviews a neighbour's state or
+helps.
 
-| Min    | Stage               | What happens                                                                                                                                                        |
-| ------ | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0–10   | Intro               | Agenda, the flow on one slide, the Teamwand repo in the browser.                                                                                                    |
-| 10–20  | 1 · Klonen          | Two slides on GitHub vs. local copy (both independent; issues, PRs and CI exist only on GitHub). The agent clones and shows origin, history and the assigned issue. |
-| 20–30  | 2 · Branch & Commit | The agent creates the branch, the entry and the commit, **without pushing**. Check on GitHub: the branch is not there yet.                                          |
-| 30–40  | 3 · Push & PR       | PR title = changelog entry. The agent pushes and opens the PR; participants check title and body first.                                                             |
-| 40–55  | 4 · Checks          | CI and AI review. Demo `demo/rote-ci` if nobody's CI is red. Answer and resolve the AI comments.                                                                    |
-| 55–65  | 5 · Review          | The agent requests the reviewer named in the issue and summarises the PR to review; the approval is clicked by the human in the browser.                            |
-| 65–80  | 6 · Merge & Staging | Merge one after the other. Neighbouring entries conflict; if none do, demo `demo/konflikt-a`/`-b`. Watch the Pages site, then let the agent fetch the new `main`.   |
-| 80–95  | 7 · Release & Prod  | Read the release PR together, approve (not the trainer), merge, check the version in the footer of the Pages site. Rollback = revert PR.                            |
-| 95–105 | Wrap-up             | What would you take into your own project? Point to the bonus issues.                                                                                               |
+| Min     | Stage                  | What happens                                                                                                                             |
+| ------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 0–15    | Intro                  | Agenda, the flow on one slide, the Teamwand repo in the browser, "Was ihr braucht": check `git --version`, `git config`, invite.         |
+| 15–25   | 1 · Klonen             | Two slides on GitHub vs. local copy (both independent; issues, PRs and CI exist only on GitHub). `git clone`, `git log`, issue.          |
+| 25–40   | 2 · Branch & Commit    | `main`, branch and commit explained. `git switch -c`, edit `team.js`, `git add`, `git commit`, **no push**. Branch not on GitHub.        |
+| 40–50   | 3 · Push & PR          | What a PR is; PR title = changelog entry. `git push -u`, "Compare & pull request"; participants check title and body first.              |
+| 50–65   | 4 · Checks             | What CI checks. Demo `demo/rote-ci` if nobody's CI is red. Answer and resolve comments (Copilot, if enabled).                            |
+| 65–75   | 5 · Review             | Request the reviewer named in the issue, read the other PR, optionally `git fetch` + `git switch`; approve in the browser.               |
+| 75–90   | 6 · Merge & Deployment | Merge one after the other. Neighbouring entries conflict; if none do, demo `demo/konflikt-a`/`-b`. Watch the Pages site, `git pull`.     |
+| 90–105  | 7 · Release            | Read the release PR together, approve (not the trainer), merge, check the version in the footer of the Pages site. Rollback = revert PR. |
+| 105–115 | Wrap-up                | What would you take into your own project? Point to the bonus issues.                                                                    |
 
 ### Bonus issues
 
