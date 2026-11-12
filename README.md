@@ -13,6 +13,12 @@ neue Version im Footer.
 
 `index.html` im Browser öffnen. Kein Server, kein Build nötig.
 
+## Workshop-Material
+
+- [Folien (PDF)](workshop/slides/git-workshop.pdf)
+- [Handout (PDF)](workshop/slides/git-workshop-handout.pdf)
+- [Leitfaden für Trainer](workshop/README.md)
+
 ## Regeln
 
 Siehe [AGENTS.md](AGENTS.md) – die gelten für euch und für euren Agenten.
