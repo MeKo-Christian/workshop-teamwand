@@ -16,7 +16,7 @@
   margin: (x: 1.6cm, top: 1.4cm, bottom: 1.6cm),
   footer: {
     set text(size: 8pt, fill: meko_body)
-    [Git & GitHub Workshop · Webanwendungen & Schnittstellen (EWWS)]
+    [Git & GitHub Workshop · github.com/MeKo-Christian/workshop-teamwand]
     h(1fr)
     context counter(page).display("1 / 1", both: true)
   },
@@ -71,6 +71,7 @@
 ]
 #let arrow = align(center + horizon, text(fill: meko_green, weight: "bold")[→])
 #let prompt(body) = text(fill: meko_green, weight: "bold")[„#body“]
+#let cmd(code) = box(fill: luma(240), radius: 3pt, inset: (x: 3pt, y: 1.5pt), outset: (y: 1pt), { show raw: set text(size: 8.5pt); raw(code) })
 #let rule(body) = text(fill: meko_green, weight: "bold")[#body]
 #let cols(..a) = grid(columns: (1fr,) * a.pos().len(), gutter: 14pt, ..a)
 
@@ -102,7 +103,7 @@
 
 // ───────────────────────── Page 1 ─────────────────────────
 
-= Git & GitHub bei MeKo — die Take-aways
+= Git & GitHub — die Take-aways
 
 Repo `MeKo-Christian/workshop-teamwand` · Seite `meko-christian.github.io/workshop-teamwand` (nach jedem Merge, Version im Footer)
 
@@ -113,15 +114,15 @@ Repo `MeKo-Christian/workshop-teamwand` · Seite `meko-christian.github.io/works
   row-gutter: 5pt,
   align: horizon,
   flow[Klonen], arrow, flow[Branch & Commit], arrow, flow[Pull Request], arrow,
-  flow[Checks (CI + KI)], arrow, flow([Review], kind: "good"),
+  flow[Checks (CI)], arrow, flow([Review], kind: "good"),
   grid.cell(colspan: 9, align(right, text(size: 9pt)[↓ Merge in `main`])),
-  flow([Staging], kind: "warn"), arrow, flow[Release-PR], arrow,
-  flow([Merge → neue Version], kind: "good"), arrow, flow([Prod], kind: "warn"),
+  flow([Deployment: Seite aktualisiert], kind: "warn"), arrow, flow[Release-PR], arrow,
+  flow([Review + Merge], kind: "good"), arrow, flow([Release: neue Version], kind: "warn"),
   [], [],
 )
 
-#rule[Niemand ändert `main` direkt — nicht ihr, nicht der Agent, nicht die Admins.]
-Jede Änderung nimmt diesen Weg, auch die kleinste. Der Agent tippt die Befehle; ihr sagt ihm, was er tun soll, und *prüft das Ergebnis*.
+#rule[Niemand ändert `main` direkt — nicht ihr, nicht ein KI-Assistent, nicht die Admins.]
+Jede Änderung nimmt diesen Weg, auch die kleinste. In echten Projekten gibt es meist zwei Umgebungen: *Staging* nach jedem Merge, *Prod* erst mit dem Release. Die Teamwand hat eine Seite für beides.
 
 == Zwei Kopien: euer Rechner und GitHub
 
@@ -184,13 +185,13 @@ Jede Änderung nimmt diesen Weg, auch die kleinste. Der Agent tippt die Befehle;
   edge((3, 1), (4, 0), "-|>", stroke: dashed-green, label: text(size: 8.5pt)[PR → Merge], label-side: right),
   tag((-0.9, 1), [`feat/ada`], color: meko_green),
   edge((5, 0), (6.4, 0), "-|>", stroke: dashed-green),
-  box-node((6.9, 0), [Staging], bg: warn_bg, line: warn_line),
+  box-node((6.9, 0), [Seite], bg: warn_bg, line: warn_line),
 ))
 
 #cols(
   [
     - `main` = der *abgestimmte Stand*, den ihr beim Klonen bekommt. Der Name ist frei wählbar (früher meist `master`).
-    - *Unsere Entscheidung:* jeder Merge in `main` geht automatisch auf Staging.
+    - *In diesem Repo* geht jeder Merge in `main` automatisch auf die Seite (in echten Projekten meist auf Staging).
     - Neue Arbeit startet immer vom neuesten `main` → erst pull.
   ],
   [
@@ -235,16 +236,16 @@ Beim Merge wird der PR-Titel *wörtlich* der Commit auf `main` und landet in den
   [`test`], [nur Tests], [`chore`], [Sonstiges (Abhängigkeiten, Aufräumen)],
 )
 
-== Checks und KI-Review
+== Checks
 
 #align(center, diagram(
   spacing: (62pt, 30pt),
   edge-stroke: green-line,
   box-node((0, 0), [Pull Request]),
   box-node((1, -0.6), [CI: Format, Lint,\ Tests, PR-Titel]),
-  box-node((1, 0.6), [KI-Review\ (nach `AGENTS.md`)], bg: warn_bg, line: warn_line),
+  box-node((1, 0.6), [Kommentare: Menschen,\ ggf. KI-Reviewer], bg: warn_bg, line: warn_line),
   box-node((2, -0.6), [grün ✅], bg: meko_green.lighten(85%), line: meko_green),
-  box-node((2, 0.6), [Kommentare], bg: warn_bg, line: warn_line),
+  box-node((2, 0.6), [bewertet], bg: warn_bg, line: warn_line),
   box-node((3, 0), [bereit fürs\ Review], bg: meko_green.lighten(85%), line: meko_green),
   edge((0, 0), (1, -0.6), "-|>"),
   edge((0, 0), (1, 0.6), "-|>"),
@@ -258,40 +259,35 @@ Beim Merge wird der PR-Titel *wörtlich* der Commit auf `main` und landet in den
 #v(0.2em)
 #cols(
   [
-    - Beides läuft *automatisch* bei jedem PR. *Rot = kein Merge.*
+    - *CI* (Continuous Integration) prüft *automatisch* bei jedem push: Formatierung, Lint, Tests, PR-Titel. *Rot = kein Merge.*
     - Rot wird *im selben Branch* repariert, nie werden Regeln abgeschaltet. Rot ist gut: der Fehler ist gefunden, bevor ihn jemand sieht.
   ],
   [
-    - KI-Kommentare *bewerten*, nicht blind umsetzen.
-    - Jeder Thread wird beantwortet und aufgelöst, sonst lässt sich nicht mergen. Der KI-Review ist beratend, die Freigabe gibt ein Mensch.
+    - Kommentare *bewerten*, nicht blind umsetzen — auch die eines KI-Reviewers (z. B. GitHub Copilot, falls eingeschaltet).
+    - Jeder Thread wird beantwortet und aufgelöst, sonst lässt sich nicht mergen. Die Freigabe gibt immer ein Mensch.
   ],
 )
 
-== Skill `/pr-fix`
-
-Ein *Skill* ist eine Anleitung als Markdown-Datei, die der Agent Schritt für Schritt abarbeitet. `/pr-fix` erledigt die offenen Review-Kommentare eures PRs:
+== Commit und Pull Request
 
 #grid(
-  columns: (1fr, 0.9em, 1fr, 0.9em, 1.1fr, 0.9em, 1fr, 0.9em, 1.3fr),
+  columns: (1fr, 0.9em, 1fr, 0.9em, 1fr, 0.9em, 1fr, 0.9em, 1.2fr),
   align: horizon,
-  flow[PR finden], arrow, flow[Kommentare lesen], arrow,
-  flow([Sortieren: beheben, beantworten, ablehnen], kind: "warn"), arrow,
-  flow[Beheben: commit + push], arrow,
-  flow([Antworten (deutsch), auflösen], kind: "good"),
+  flow[Ändern (Editor)], arrow, flow[Vormerken: `git add`], arrow,
+  flow([Committen: `git commit`], kind: "good"), arrow,
+  flow([Hochladen: `git push`], kind: "warn"), arrow,
+  flow([Pull Request auf GitHub], kind: "good"),
 )
 
-#v(0.4em)
+#v(0.3em)
 #cols(
-  card([Eingebaute Bremsen], kind: "good")[
-    - Kein offener PR → tut nichts.
-    - Fragen werden beantwortet, nicht aufgelöst.
-    - Erst push, dann antworten — nie umgekehrt.
-    - Unklarer Kommentar → fragt euch statt zu raten.
+  [
+    - *Commit* = gespeicherter Stand mit Nachricht, Autor, Zeit und ID. Entsteht nur auf eurem Rechner.
+    - `git add` wählt aus, *was* in den Commit kommt. `git status` zeigt jederzeit Branch, Änderungen und Vorgemerktes.
   ],
-  card([Eure Rolle], kind: "warn")[
-    - Die Sortierung prüfen, *bevor* er ändert.
-    - Ablehnen ist erlaubt — mit Begründung.
-    - Die Antworten stehen unter *eurem Namen*: lesen!
+  [
+    - *Pull Request* = die Bitte „nehmt meinen Branch in `main` auf“ — nur auf GitHub: Änderungen (*Files changed*), Checks, Kommentare, Freigabe, Merge.
+    - Neue Commits auf dem Branch landen nach dem push automatisch im selben PR.
   ],
 )
 
@@ -300,11 +296,11 @@ Ein *Skill* ist eine Anleitung als Markdown-Datei, die der Agent Schritt für Sc
 #cols(
   card([Ihr als Reviewer:in], kind: "good")[
     - Passt der PR zum Issue — und *nur* dazu?
-    - Selbst ansehen, nicht nur dem Agenten glauben.
+    - Selbst ansehen, gern lokal ausprobieren.
     - Ist der Titel ein guter Changelog-Eintrag?
     - Konkret kommentieren: *was* und *warum*. Änderungen anfordern ist nicht unhöflich.
   ],
-  card([Der KI-Reviewer], kind: "warn")[
+  card([Ein KI-Reviewer (falls eingeschaltet)], kind: "warn")[
     - Findet Muster, schnell und gründlich.
     - Kennt euer Ziel nicht und kann irren.
     - *Gibt nichts frei:* Das macht immer ein Mensch, nie der Autor selbst. Approve heißt: ich stehe mit dafür ein.
@@ -354,8 +350,9 @@ Ein *Skill* ist eine Anleitung als Markdown-Datei, die der Agent Schritt für Sc
   ],
   card([Was richtig ist, wisst ihr], kind: "good")[
     Git kann nicht entscheiden, welche Zeile gilt. In der Teamwand: *beide* behalten, alphabetisch sortiert.
-    #v(0.3em)
-    #prompt[Löse den Konflikt so, dass beide Einträge erhalten bleiben, und erklär mir, was du gemacht hast.]
+    #v(0.2em)
+    *Selbst:* *Resolve conflicts* im PR, Markierungen löschen → *Mark as resolved* → *Commit merge*.
+    *KI:* #prompt[Löse den Konflikt, behalte beide Einträge und erklär mir, was du gemacht hast.]
   ],
 )
 
@@ -365,14 +362,14 @@ Ein *Skill* ist eine Anleitung als Markdown-Datei, die der Agent Schritt für Sc
   spacing: (50pt, 30pt),
   edge-stroke: green-line,
   box-node((0, 0), [Merge in `main`]),
-  box-node((1, 0), [Staging], bg: warn_bg, line: warn_line),
+  box-node((1, 0), [Seite\ aktualisiert], bg: warn_bg, line: warn_line),
   box-node((2, 0), [Release-PR\ (offen)]),
   box-node((3, 0), [Review +\ Merge], bg: meko_green.lighten(85%), line: meko_green),
-  box-node((4, 0), [Prod], bg: warn_bg, line: warn_line),
+  box-node((4, 0), [neue Version\ + Release], bg: warn_bg, line: warn_line),
   edge((0, 0), (1, 0), "-|>", label: text(size: 8pt)[automatisch]),
   edge((1, 0), (2, 0), "-|>", label: text(size: 8pt)[sammelt]),
   edge((2, 0), (3, 0), "-|>"),
-  edge((3, 0), (4, 0), "-|>", label: text(size: 8pt)[neue Version]),
+  edge((3, 0), (4, 0), "-|>"),
 ))
 
 #cols(
@@ -380,9 +377,9 @@ Ein *Skill* ist eine Anleitung als Markdown-Datei, die der Agent Schritt für Sc
     *release-please* hält nach jedem Merge *einen* Release-PR offen:
     - Changelog aus euren *PR-Titeln*
     - neue Versionsnummer
-    - Merge des Release-PRs → *Prod*
+    - Merge des Release-PRs → *neue Version* (Footer der Seite, GitHub-Release)
 
-    Prod bekommt genau den Stand, der schon auf Staging lief.
+    In echten Projekten geht genau dieser Stand dann nach Prod.
   ],
   card([chore(main): release 0.2.0])[
     #set text(size: 9.5pt)
@@ -398,7 +395,7 @@ Ein *Skill* ist eine Anleitung als Markdown-Datei, die der Agent Schritt für Sc
 )
 
 #v(0.2em)
-#card([Und wenn Prod kaputt ist?], kind: "warn")[
+#card([Und wenn die neue Version kaputt ist?], kind: "warn")[
   Kein Hotfix per Hand. Die Änderung per *Revert-PR* zurücknehmen und neu releasen — gleicher Weg, auch unter Zeitdruck.
 ]
 
@@ -461,58 +458,52 @@ Euer Branch ist hinter `main`, weil inzwischen `C` gemerged wurde. Zwei Wege:
 
 // ───────────────────────── Page 4 ─────────────────────────
 
-== Prompts, Etappe für Etappe
+== Etappe für Etappe: selbst oder mit KI-Assistent
 
-Ihr sagt eurem Agenten, *was* er tun soll, und prüft danach selbst:
+Einmalig vorab: #cmd("git config --global user.name \"Anna Muster\"") und #cmd("git config --global user.email \"eure@mail.de\"").
+Beim ersten push fragt Git im Browser nach dem GitHub-Login. Beispiele für Issue 7, Login `anna`.
 
+#[
+#set text(size: 9pt)
 #table(
-  columns: (auto, 1fr, 0.8fr),
+  columns: (auto, 1.55fr, 1fr, 0.62fr),
   stroke: (x: none, y: 0.4pt + luma(210)),
-  inset: (x: 6pt, y: 6pt),
+  inset: (x: 5pt, y: 5pt),
   fill: (_, y) => if y == 0 { meko_green.lighten(85%) } else { none },
-  table.header[*Etappe*][*Sagt eurem Agenten*][*Selbst prüfen*],
+  table.header[*Etappe*][*Selbst: Befehl oder Klick*][*Oder: sagt eurem KI-Assistenten*][*Selbst prüfen*],
   [1 · Klonen],
+  [#cmd("git clone https://github.com/MeKo-Christian/workshop-teamwand") #cmd("cd workshop-teamwand") #cmd("git log --oneline -5") · Issues auf GitHub ansehen],
   [#prompt[Klone MeKo-Christian/workshop-teamwand in meinen Projektordner.] #prompt[Welche Issues sind mir zugewiesen?]],
   [`index.html` im Browser öffnen],
   [2 · Branch & Commit],
+  [#cmd("git switch -c feat/7-teamwand-anna") · Zeile in `team.js` einfügen · #cmd("git add team.js") #cmd("git commit -m \"feat: add anna to the team wall\"")],
   [#prompt[Leg einen Branch nach AGENTS.md an, erstelle meine Karte (Name, Emoji, Motto) und committe. Noch nicht hochladen.]],
   [Karte lokal sichtbar? Branch auf GitHub? (noch nicht)],
   [3 · Push & PR],
+  [#cmd("git push -u origin feat/7-teamwand-anna") · *Compare & pull request* · Titel `feat: add anna to the team wall`, Text `Closes #7`],
   [#prompt[Lade meinen Branch hoch und öffne einen PR mit Conventional-Commit-Titel. Gib mir den Link.]],
   [Titel verständlich? Nur eure Zeile geändert?],
   [4 · Checks],
-  [#prompt[Sind die Checks grün? Falls rot: Lies das Log und behebe den Fehler, ohne Regeln abzuschalten.] #prompt[Fass das KI-Review zusammen. Was ist berechtigt?]],
+  [Checks im PR abwarten · rot: *Details*, Log lesen, korrigieren, #cmd("git commit -am \"fix: …\"") #cmd("git push")],
+  [#prompt[Sind die Checks grün? Falls rot: Lies das Log und behebe den Fehler, ohne Regeln abzuschalten.]],
   [Kommentare beantworten und auflösen],
   [5 · Review],
+  [*Reviewers* im eigenen PR setzen · fremden PR: *Files changed*, lokal #cmd("git fetch") #cmd("git switch <branch>") · *Review changes*],
   [#prompt[Fordere ein Review von der Person an, die in meinem Issue steht.] #prompt[Hol mir diesen PR und fass zusammen: Passt er zum Issue und zu AGENTS.md?]],
-  [Fremden PR ansehen, *selbst* freigeben],
-  [6 · Merge & Staging],
+  [Fremden PR *selbst* freigeben],
+  [6 · Merge & Deployment],
+  [*Squash and merge* · #cmd("git switch main") #cmd("git pull") #cmd("git branch -D feat/7-teamwand-anna")],
   [#prompt[Ist mein PR freigegeben und grün? Dann merge ihn.] #prompt[Hol den neuesten Stand von main und lösch meinen alten Branch lokal.]],
-  [Staging zeigt eure Karte],
-  [7 · Release & Prod],
-  [#prompt[Zeig mir den offenen Release-PR und fass den Changelog zusammen.] #prompt[Ist die Release-Pipeline durchgelaufen?]],
-  [Gemeinsam freigeben, Prod und Version prüfen],
+  [Die Seite zeigt eure Karte],
+  [7 · Release],
+  [Release-PR öffnen, Changelog lesen, gemeinsam freigeben und mergen · *Actions* und *Releases* ansehen],
+  [#prompt[Zeig mir den offenen Release-PR und fass den Changelog zusammen.]],
+  [Neue Version im Footer der Seite],
 )
+]
 
-#v(0.4em)
-*Wenn es hakt:* #prompt[Mein PR hat einen Konflikt mit main …] · #prompt[Bring meinen Branch per Merge auf den Stand von main.] · #prompt[Erklär mir, was du gerade gemacht hast und warum.]
-
-== Wer macht was?
-
-#cols(
-  card([Der Agent tippt], kind: "warn")[
-    - Befehle ausführen: klonen, Branch, Commit, push
-    - PR anlegen, Logs lesen, Fehler beheben
-    - Kommentare und Changelog zusammenfassen
-    - Konflikte vorschlagen aufzulösen
-  ],
-  card([Ihr entscheidet und prüft], kind: "good")[
-    - Was geändert wird und ob es zum Issue passt
-    - Titel, Text und Diff vor dem Hochladen
-    - Welche KI-Kommentare berechtigt sind
-    - *Die Freigabe im Browser* — nie der Agent
-  ],
-)
+#v(0.3em)
+*Wenn es hakt:* #cmd("git status") zeigt, wo ihr steht · Branch nachziehen: *Update branch* im PR · #prompt[Erklär mir, was du gerade gemacht hast und warum.]
 
 == Eure Regeln auf einen Blick
 
@@ -525,9 +516,9 @@ Ihr sagt eurem Agenten, *was* er tun soll, und prüft danach selbst:
   ],
   [
     - Rote CI wird repariert, nicht abgeschaltet.
-    - Jeder KI-Kommentar wird bewertet und beantwortet.
+    - Jeder Kommentar wird bewertet und beantwortet.
     - Das Review ist ein Mensch, nie der Autor.
-    - Prod nur über den Release-PR; Rollback per Revert-PR.
+    - Neue Version nur über den Release-PR; Rollback per Revert-PR.
   ],
 )
 
@@ -536,9 +527,9 @@ Ihr sagt eurem Agenten, *was* er tun soll, und prüft danach selbst:
 #card(none, kind: "good")[
   #align(center)[
     #text(fill: meko_green, weight: "bold", size: 12pt)[
-      Der Agent tippt. Verantwortlich seid ihr — und das Review ist eure Unterschrift.
+      Ob ihr tippt oder ein KI-Assistent: Verantwortlich seid ihr — und das Review ist eure Unterschrift.
     ]\
     #v(0.2em)
-    Weiterüben: Issues mit Label `bonus` (kleine Features mit Test, gleicher Weg) · Vorlage für euer eigenes Projekt: `MeKo-Tech/go-react-template`
+    Weiterüben: Issues mit Label `bonus` (kleine Features mit Test, gleicher Weg) · Für euer eigenes Projekt: `main` schützen, CI als Pflicht, Squash-Merge
   ]
 ]

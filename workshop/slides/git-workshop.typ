@@ -41,36 +41,68 @@
   ]
   #let arrow = align(center + horizon, text(size: 1.4em, fill: meko_green)[→])
 
-  // A prompt for the participant's agent.
+  // A prompt for an AI assistant, for participants who use one.
   #let prompt(body) = text(fill: meko_green, weight: "bold")[„#body“]
 
-  // Exercise slide body: the prompts for the agent, then what to check by
-  // yourself. No terminal commands: the agent runs them.
-  #let aufgabe(minuten, prompts, selbst) = [
-    #text(
-      fill: meko_green,
-      weight: "bold",
-    )[Sagt eurem Agenten (ca. #minuten Minuten)]
-    #v(0.3em)
-    #stack(
-      spacing: 8pt,
-      ..prompts
+  // A terminal command inside an exercise step.
+  #let cmd(code) = box(
+    fill: white,
+    stroke: 0.5pt + luma(200),
+    radius: 4pt,
+    inset: (x: 5pt, y: 3pt),
+    outset: (y: 1pt),
+    {
+      // lib.typ sets raw to 14pt via a show rule; override it here.
+      show raw: set text(size: 11.5pt)
+      raw(code)
+    },
+  )
+
+  // Exercise slide body. Left: the steps, with the git command or the click on
+  // github.com. Right: the same steps as prompts for an AI assistant. Below:
+  // what to check by yourself, whichever way you went.
+  #let aufgabe(minuten, schritte, prompts, selbst) = {
+    let nummeriert(items, fill, stroke, render) = stack(
+      spacing: 6pt,
+      ..items
         .enumerate()
         .map(((i, body)) => block(
           width: 100%,
-          fill: meko_green.lighten(90%),
-          stroke: 0.75pt + meko_green.lighten(30%),
-          radius: 10pt,
-          inset: (x: 14pt, y: 10pt),
+          fill: fill,
+          stroke: 0.75pt + stroke,
+          radius: 8pt,
+          inset: (x: 10pt, y: 7pt),
           grid(
-            columns: (1.6em, 1fr),
-            text(fill: meko_green, weight: "bold")[#(i + 1)], prompt(body),
+            columns: (1.3em, 1fr),
+            text(fill: meko_green, weight: "bold")[#(i + 1)], render(body),
           ),
         )),
     )
-    #v(0.6em)
-    *Selbst prüfen:* #selbst
-  ]
+    set text(size: 0.8em)
+    show raw: set text(size: 12.5pt)
+    grid(
+      columns: (2fr, 1fr),
+      column-gutter: 16pt,
+      align: top,
+      [
+        #text(fill: meko_green, weight: "bold")[Selbst machen (ca. #minuten Minuten)]
+        #v(0.2em)
+        #nummeriert(
+          schritte,
+          meko_green.lighten(90%),
+          meko_green.lighten(30%),
+          body => body,
+        )
+      ],
+      [
+        #text(fill: meko_grey, weight: "bold")[Oder: sagt eurem KI-Assistenten]
+        #v(0.2em)
+        #nummeriert(prompts, luma(245), luma(200), prompt)
+      ],
+    )
+    v(0.5em)
+    [*Selbst prüfen:* #selbst]
+  }
 
   // The stages of the workshop. Every stage section shows this bar with the
   // current stage highlighted, so the flow stays visible as one piece.
@@ -80,8 +112,8 @@
     [Push & PR],
     [Checks],
     [Review],
-    [Merge & Staging],
-    [Release & Prod],
+    [Merge & Deployment],
+    [Release],
   )
   #let etappen(current, on-dark: true) = {
     let fg = if on-dark { white } else { meko_grey }
@@ -120,9 +152,9 @@
 
   #title-slide(
     title: [Git & GitHub Workshop],
-    subtitle: [Von der Idee bis in die Produktionsumgebung],
-    authors: [Webanwendungen & Schnittstellen (EWWS)],
-    notes: "Begrüßung · heute keine Vorlesung · ihr macht es selbst · eine Änderung, Schritt für Schritt bis Prod",
+    subtitle: [Eine Änderung von der Idee bis auf die Webseite],
+    authors: [Christian Budde],
+    notes: "Begrüßung · heute keine Vorlesung · ihr macht es selbst · eine Änderung, Schritt für Schritt bis auf die Seite",
   )
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -131,11 +163,12 @@
 
   #content-slide(
     [Workshop-Agenda],
-    notes: "Grundlagen kennt ihr aus dem SE-Workshop · heute: echtes Repo, echte Pipeline, echtes Review · EINE Änderung pro Person · alle gehen gemeinsam Etappe für Etappe · der Agent tippt, ihr entscheidet und prüft",
+    notes: "keine Vorkenntnisse nötig: jeder Begriff kommt, wenn wir ihn brauchen · echtes Repo, echte Pipeline, echtes Review · EINE Änderung pro Person · alle gehen gemeinsam Etappe für Etappe · Befehle stehen auf jeder Übungsfolie · KI-Assistent ist erlaubt, ersetzt aber nicht das Verstehen",
   )[
     #set align(left)
-    Die Grundlagen hatten wir schon: Commit, Branch, Merge, Pull Request.
-    Heute spielen wir den *kompletten Ablauf* wie bei uns üblich selbst durch — an einem Beispiel-Repo „Teamwand“.
+    Heute spielt ihr den *kompletten Weg einer Änderung* selbst durch — so, wie
+    Softwareteams mit Git und GitHub arbeiten. Am Beispiel-Repo „Teamwand“.
+    Vorkenntnisse braucht ihr keine: Jeder Begriff kommt, wenn wir ihn brauchen.
 
     #v(0.5em)
     *Eine Änderung pro Person:* jede:r trägt sich in die Teamwand ein.
@@ -145,12 +178,13 @@
     #align(center, etappen(0, on-dark: false))
 
     #v(0.7em)
-    *Euer Agent tippt die Befehle — ihr sagt ihm, was er tun soll, und prüft das Ergebnis.*
+    *Jede Übung zeigt die Befehle zum Selbertippen — und daneben die Sätze für
+    einen KI-Assistenten, falls ihr einen nutzt. Prüfen müsst ihr selbst.*
   ]
 
   #content-slide(
     [Der Weg einer Änderung],
-    notes: "einmal komplett zeigen, dann Etappe für Etappe · obere Reihe: jeder PR · untere Reihe: Release · Staging nach jedem Merge, Prod nur über Release-PR · niemand ändert main direkt",
+    notes: "einmal komplett zeigen, dann Etappe für Etappe · obere Reihe: jeder PR · untere Reihe: Deployment und Release · in echten Projekten meist zwei Umgebungen: Staging nach jedem Merge, Prod erst mit dem Release · hier eine Seite für beides · niemand ändert main direkt",
   )[
     #set align(left)
     *Jede Änderung* — egal wie klein — nimmt diesen Weg:
@@ -165,7 +199,7 @@
       arrow,
       step([Pull Request], [Bitte um Aufnahme]),
       arrow,
-      step([Checks], [CI + KI-Review]),
+      step([Checks], [automatische Prüfung]),
       arrow,
       step([Review], [ein Mensch], kind: "good"),
     )
@@ -178,24 +212,31 @@
     #grid(
       columns: (1fr, 1.6em, 1fr, 1.6em, 1fr, 1.6em, 1fr),
       align: horizon,
-      step([Staging], [Testumgebung], kind: "warn"),
+      step([Deployment], [Seite aktualisiert], kind: "warn"),
       arrow,
       step([Release-PR], [sammelt Änderungen]),
       arrow,
       step([Review + Merge], [neue Version], kind: "good"),
       arrow,
-      step([Prod], [live], kind: "warn"),
+      step([Release], [Version auf der Seite], kind: "warn"),
     )
 
-    #v(0.6em)
+    #v(0.4em)
+    #text(size: 0.75em)[
+      In echten Projekten gibt es dafür meist zwei Umgebungen: *Staging* nach
+      jedem Merge, *Prod* erst mit dem Release. Die Teamwand hat eine Seite für
+      beides.
+    ]
+
+    #v(0.4em)
     #text(fill: meko_green, weight: "bold")[
-      Niemand ändert main direkt — nicht ihr, nicht der Agent, nicht die Admins.
+      Niemand ändert main direkt — nicht ihr, nicht ein KI-Assistent, nicht die Admins.
     ]
   ]
 
   #content-slide(
     [Die Teamwand],
-    notes: "Repo im Browser zeigen · team.js eine Zeile pro Person, alphabetisch · AGENTS.md: Regeln, die der Agent und der KI-Reviewer lesen · Seite auf GitHub Pages, öffentlich",
+    notes: "Repo im Browser zeigen · team.js eine Zeile pro Person, alphabetisch · AGENTS.md: die Projektregeln, geschrieben für Menschen UND KI-Werkzeuge (die lesen die Datei automatisch) · Seite auf GitHub Pages, öffentlich",
   )[
     #set align(left)
     #grid(
@@ -207,7 +248,7 @@
         #v(0.4em)
         - `team.js` — die Einträge, eine Zeile pro Person
         - `index.html` — die Seite, per Doppelklick öffnen
-        - `AGENTS.md` — die Regeln für euch *und* euren Agenten
+        - `AGENTS.md` — die Regeln des Projekts, für Menschen *und* KI-Werkzeuge
 
         #v(0.4em)
         #text(size: 0.85em)[Kein Build, kein Server — läuft direkt im Browser.]
@@ -224,6 +265,42 @@
         )[Release-PR mergen, dann Seite neu laden]
       ],
     )
+  ]
+
+  #content-slide(
+    [Was ihr braucht],
+    notes: "vorab per Mail verschickt · am Anfang reihum prüfen: git --version, Login auf github.com, Einladung angenommen · user.name/user.email fehlen bei frischer Installation → sonst scheitert der erste Commit · beim ersten push öffnet Git ein Browserfenster für den GitHub-Login (Git Credential Manager) · KI-Assistent ist optional",
+  )[
+    #set align(left)
+    #grid(
+      columns: (1fr, 1fr),
+      gutter: 14pt,
+      align: top,
+      card([Werkzeuge], kind: "good")[
+        - Einen *GitHub-Account* — und die Einladung ins Repo angenommen
+        - *Git* installiert: #raw("git --version") zeigt eine Version
+        - Einen *Editor*, z. B. VS Code
+        - Einen *Browser* für GitHub und die Seite
+      ],
+      card([Einmalig: Git sagen, wer ihr seid])[
+        Jeder Commit trägt euren Namen. Im Terminal:
+        #v(0.3em)
+        #show raw: set text(size: 12pt)
+        ```
+        git config --global user.name "Anna Muster"
+        git config --global user.email "eure@mail.de"
+        ```
+        #v(0.2em)
+        Beim ersten *push* fragt Git im Browser nach dem GitHub-Login.
+      ],
+    )
+
+    #v(0.6em)
+    #card([Optional: ein KI-Assistent], kind: "warn")[
+      Wer einen nutzt (z. B. GitHub Copilot, Claude Code), kann ihm die Sätze von
+      den Übungsfolien geben. Er tippt dann die Befehle — verstehen und prüfen
+      müsst ihr trotzdem selbst.
+    ]
   ]
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -336,11 +413,18 @@
 
   #content-slide(
     [🛠 Etappe 1: Klonen],
-    notes: "~5 Min · Agent klont und zeigt die History · Issue liegt auf GitHub, nicht im Ordner",
+    notes: "~5 Min · Terminal im Ordner öffnen, in dem eure Projekte liegen · clone legt den Unterordner workshop-teamwand an · git log zeigt die History, die mitgekommen ist · Issue liegt auf GitHub, nicht im Ordner",
   )[
     #set align(left)
     #aufgabe(
       5,
+      (
+        [Klonen — im Terminal, in eurem Projektordner:\
+          #cmd("git clone https://github.com/MeKo-Christian/workshop-teamwand")\
+          #cmd("cd workshop-teamwand")],
+        [Die letzten fünf Commits ansehen: #cmd("git log --oneline -5")],
+        [Auf GitHub unter *Issues*: Welches Issue ist euch zugewiesen?],
+      ),
       (
         [Klone MeKo-Christian/workshop-teamwand in meinen Projektordner.],
         [Zeig mir die letzten fünf Commits.],
@@ -364,7 +448,7 @@
 
   #content-slide(
     [Was ist `main`?],
-    notes: "main = der gemeinsame, abgestimmte Stand · beim Klonen bekommt ihr main · Name ist frei wählbar: früher meist master, wir haben uns für main entschieden · unsere Entscheidung: jeder push auf main geht automatisch auf Staging · neue Arbeit immer vom neuesten main starten → erst pull",
+    notes: "main = der gemeinsame, abgestimmte Stand · beim Klonen bekommt ihr main · Name ist frei wählbar: früher meist master, heute meist main · in diesem Repo: jeder Merge in main geht automatisch auf die Seite (in echten Projekten: Staging) · neue Arbeit immer vom neuesten main starten → erst pull",
   )[
     #set align(left)
     `main` ist die *Hauptlinie* des Projekts: der Stand, auf den sich alle
@@ -402,7 +486,7 @@
       )),
       node(
         (4.2, 0),
-        text(size: 0.85em, weight: "bold")[Staging],
+        text(size: 0.85em, weight: "bold")[Seite],
         fill: rgb("#fff8e1"),
         stroke: 0.75pt + rgb("#e0b73a"),
         corner-radius: 6pt,
@@ -417,11 +501,12 @@
       gutter: 12pt,
       align: top,
       card([Nur ein Name])[
-        Der Name ist frei wählbar. Früher hieß die Hauptlinie meist `master` —
-        wir haben uns für `main` entschieden.
+        Der Name ist frei wählbar. Früher hieß die Hauptlinie meist `master`,
+        heute meist `main`.
       ],
-      card([Geht auf Staging], kind: "warn")[
-        Unsere Entscheidung: Jeder push auf `main` landet automatisch auf Staging.
+      card([Geht auf die Seite], kind: "warn")[
+        In diesem Repo landet jeder Merge in `main` automatisch auf der Seite —
+        in echten Projekten meist auf Staging.
       ],
     )
 
@@ -433,7 +518,7 @@
 
   #content-slide(
     [Was ist ein Branch?],
-    notes: "Branch = eigene Linie von Commits, zweigt von main ab · main bleibt stabil, geht nach jedem Merge auf Staging · ein Issue = ein Branch = ein PR · kostet nichts: nur ein Name, der auf einen Commit zeigt · entsteht lokal, GitHub sieht ihn erst nach push · nach dem Merge gelöscht",
+    notes: "Branch = eigene Linie von Commits, zweigt von main ab · main bleibt stabil, geht nach jedem Merge auf die Seite · ein Issue = ein Branch = ein PR · kostet nichts: nur ein Name, der auf einen Commit zeigt · entsteht lokal, GitHub sieht ihn erst nach push · nach dem Merge gelöscht",
   )[
     #set align(left)
     Ein Branch ist eine *eigene Linie von Commits*. Ihr zweigt von `main` ab,
@@ -488,7 +573,7 @@
       gutter: 12pt,
       align: top,
       card([Warum?], kind: "good")[
-        - `main` bleibt stabil — geht nach jedem Merge auf Staging.
+        - `main` bleibt stabil — geht nach jedem Merge auf die Seite.
         - Ihr stört niemanden, niemand stört euch.
         - Ein Issue = ein Branch = ein PR: klein, gut zu reviewen.
         - Schiefgegangen? Branch wegwerfen.
@@ -503,19 +588,71 @@
   ]
 
   #content-slide(
+    [Was ist ein Commit?],
+    notes: "Commit = gespeicherter Stand mit Nachricht, Autor, Zeit und ID · zwei Schritte: git add merkt vor, was in den Commit soll, git commit speichert · so landen nur gewollte Dateien im Commit · git status zeigt jederzeit, was geändert und was vorgemerkt ist · alles lokal, GitHub sieht nichts bis zum push",
+  )[
+    #set align(left)
+    Ein Commit ist ein *gespeicherter Stand* eurer Dateien — mit Nachricht,
+    Autor, Zeitpunkt und einer eindeutigen ID. Die History ist die Kette dieser
+    Commits.
+
+    #v(0.4em)
+    #grid(
+      columns: (1fr, 1.6em, 1fr, 1.6em, 1fr, 1.6em, 1fr),
+      align: horizon,
+      step([Ändern], [im Editor]),
+      arrow,
+      step([Vormerken], [`git add`]),
+      arrow,
+      step([Committen], [`git commit`], kind: "good"),
+      arrow,
+      step([Hochladen], [`git push` · Etappe 3], kind: "warn"),
+    )
+
+    #v(0.5em)
+    #set text(size: 0.9em)
+    #grid(
+      columns: (1fr, 1fr),
+      gutter: 12pt,
+      align: top,
+      card([Warum zwei Schritte?], kind: "good")[
+        Ihr entscheidet mit `git add`, *was* in den Commit kommt — nicht jede
+        geänderte Datei gehört dazu.
+      ],
+      card([Immer gut: `git status`])[
+        Zeigt, auf welchem Branch ihr seid, was geändert und was vorgemerkt
+        ist.
+      ],
+    )
+
+    #v(0.4em)
+    #text(fill: meko_green, weight: "bold")[
+      Ein Commit entsteht nur auf eurem Rechner — GitHub sieht ihn erst nach dem push.
+    ]
+  ]
+
+  #content-slide(
     [🛠 Etappe 2: Branch & Commit],
-    notes: "~10 Min · Agent liest AGENTS.md für Branch-Namen und Commit-Nachricht · KEIN Hochladen · auf GitHub nachsehen: Branch gibt es dort nicht → Etappe 1 bestätigt",
+    notes: "~10 Min · Branch-Name steht im Issue (Typ/Issue-Nummer-Kurzbeschreibung, siehe AGENTS.md) · eigene Zeile in team.js an der alphabetischen Stelle · KEIN Hochladen · auf GitHub nachsehen: Branch gibt es dort nicht → Etappe 1 bestätigt",
   )[
     #set align(left)
     #aufgabe(
       10,
       (
-        [Ich will eine Änderung machen. Leg dafür einen Branch nach AGENTS.md an.],
-        [Erstelle nun eine persönliche Karte — Name, Emoji, Motto.],
-        [Committe das. Noch nicht hochladen.],
-        [Zeige mir das Ergebnis lokal im Browser an],
+        [Branch anlegen, Name wie im Issue: #cmd("git switch -c feat/7-teamwand-anna")],
+        [`team.js` im Editor öffnen und eure Zeile an der alphabetischen Stelle einfügen — Name, Emoji, Motto.],
+        [`index.html` im Browser neu laden: Ist eure Karte da?],
+        [Committen, noch nicht hochladen:\
+          #cmd("git add team.js")
+          #cmd("git commit -m \"feat: add anna to the team wall\"")],
       ),
-      [`index.html` ist eure Karte da? Und auf GitHub: gibt es euren Branch dort schon?],
+      (
+        [Ich will eine Änderung machen. Leg dafür einen Branch nach AGENTS.md an.],
+        [Erstelle eine persönliche Karte für mich — Name, Emoji, Motto.],
+        [Zeig mir das Ergebnis lokal im Browser.],
+        [Committe das. Noch nicht hochladen.],
+      ),
+      [#cmd("git status") — alles committet? Und auf GitHub: Gibt es euren Branch dort schon?],
     )
   ]
 
@@ -529,6 +666,36 @@
     notes: "Hochladen bringt den Branch zu GitHub · der PR ist die Bitte, ihn in main aufzunehmen",
   )[
     Die Änderung geht zu GitHub — und ihr bittet um Aufnahme in `main`.
+  ]
+
+  #content-slide(
+    [Was ist ein Pull Request?],
+    notes: "PR = Bitte: nehmt meinen Branch in main auf · gibt es nur auf GitHub, nicht in Git selbst · alles an einem Ort: Änderungen (Files changed), Diskussion, Checks, Review, Merge-Button · weitere Commits auf dem Branch landen automatisch im selben PR · Closes #N schließt das Issue beim Merge",
+  )[
+    #set align(left)
+    Ein Pull Request ist die *Bitte*: „Nehmt meinen Branch in `main` auf.“
+    Er existiert nur auf GitHub — und bündelt alles, was dafür nötig ist:
+
+    #v(0.4em)
+    #grid(
+      columns: (1fr, 1fr, 1fr),
+      gutter: 12pt,
+      align: top,
+      card([Die Änderung])[
+        Reiter *Files changed*: jede Zeile, die anders ist als in `main`.
+      ],
+      card([Die Prüfung], kind: "warn")[
+        Automatische Checks und Kommentare von Menschen (und ggf. Bots).
+      ],
+      card([Die Entscheidung], kind: "good")[
+        Freigabe durch einen Menschen, dann der Button *Merge*.
+      ],
+    )
+
+    #v(0.5em)
+    #set text(size: 0.9em)
+    - Neue Commits auf dem Branch landen *automatisch im selben PR* — nach dem push.
+    - `Closes #7` im PR-Text schließt das Issue beim Merge.
   ]
 
   #content-slide(
@@ -565,17 +732,22 @@
 
   #content-slide(
     [🛠 Etappe 3: Push & Pull Request],
-    notes: "~10 Min · nach dem Hochladen ist der Branch auf GitHub sichtbar · Titel und Text prüfen, bevor der PR rausgeht · 'Closes #N' verknüpft das Issue",
+    notes: "~10 Min · erster push: Git öffnet ein Browserfenster für den GitHub-Login · -u merkt sich origin als Ziel, danach reicht git push · GitHub zeigt danach oben den gelben Hinweis 'Compare & pull request' · Titel und Text prüfen, bevor der PR rausgeht · 'Closes #N' verknüpft das Issue",
   )[
     #set align(left)
     #aufgabe(
       10,
       (
+        [Branch hochladen: #cmd("git push -u origin feat/7-teamwand-anna")],
+        [Auf GitHub erscheint *Compare & pull request* — klicken.],
+        [Titel `feat: add anna to the team wall`, Text `Closes #7` — dann *Create pull request*.],
+      ),
+      (
         [Lade meinen Branch hoch.],
-        [Erstelle einen Pull Request mit Conventional-Commit-Titel],
+        [Erstelle einen Pull Request mit Conventional-Commit-Titel, der mein Issue schließt.],
         [Gib mir den Link zum PR.],
       ),
-      [PR im Browser öffnen: Titel verständlich? Nur eure eine Zeile geändert?],
+      [Im PR unter *Files changed*: Titel verständlich? Nur eure eine Zeile geändert?],
     )
   ]
 
@@ -586,49 +758,28 @@
   #etappe(
     4,
     [Checks],
-    notes: "CI prüft Formatierung, Lint, Tests, PR-Titel · KI-Review kommentiert nach AGENTS.md · beide laufen automatisch · rot = kein Merge",
+    notes: "CI prüft Formatierung, Lint, Tests, PR-Titel · läuft automatisch bei jedem push · rot = kein Merge · KI-Review nur, wenn im Repo eingeschaltet",
   )[
-    CI und KI-Review laufen automatisch bei jedem Pull Request.
+    GitHub prüft jeden Pull Request automatisch — bevor ein Mensch draufschaut.
   ]
 
   #content-slide(
-    [🛠 Etappe 4: Checks],
-    notes: "~10 Min · Demo demo/rote-ci, falls bei niemandem was rot ist · nie Regeln abschalten · KI-Review dauert ein paar Minuten · Kommentare bewerten, nicht blind umsetzen · Threads auflösen, sonst kein Merge",
+    [Was prüft die CI?],
+    notes: "CI = Continuous Integration · GitHub Actions startet bei jedem push eine frische Maschine und führt die Prüfungen aus .github/workflows aus · Prettier = Formatierung, ESLint = typische Fehler, html-validate, node --test = Tests (u. a. Sortierung von team.js), PR-Titel · rot heißt: Details öffnen, Log lesen, im selben Branch beheben, push → läuft neu · Regeln abschalten ist keine Lösung · KI-Reviewer (z. B. Copilot) nur, falls eingeschaltet: beratend, Kommentare bewerten, beantworten, auflösen",
   )[
     #set align(left)
-    #aufgabe(
-      10,
-      (
-        [Sind die Checks in meinem PR grün?],
-        [Falls rot: Lies das Log und behebe den Fehler — ohne Regeln abzuschalten.],
-        [Fass das KI-Review zusammen. Was davon ist berechtigt?],
-      ),
-      [Jeden Kommentar beantworten und auflösen — vorher lässt sich nicht mergen. Rot ist gut: Der Fehler ist gefunden, bevor ihn jemand sieht.],
-    )
-  ]
-
-  #content-slide(
-    [Skill: `/pr-fix`],
-    notes: "Skill = Anleitung als Markdown-Datei, der Agent arbeitet sie Schritt für Schritt ab · /pr-fix: offene Review-Kommentare abarbeiten — genau das, was ihr gerade von Hand gemacht habt · erst sortieren, dann ändern · Fragen werden beantwortet, nicht aufgelöst · Antworten auf Deutsch, stehen unter eurem Namen → lesen! · kein PR → macht nichts",
-  )[
-    #set align(left)
-    Ein *Skill* ist eine Anleitung als Markdown-Datei — der Agent arbeitet sie
-    Schritt für Schritt ab. #box[`/pr-fix`] erledigt die offenen Review-Kommentare
-    eures Pull Requests.
+    *CI* (Continuous Integration): Bei jedem push startet GitHub eine frische
+    Maschine und prüft euren Branch — jedes Mal gleich, ohne Ausnahme.
 
     #v(0.4em)
     #grid(
-      columns: (1fr, 1.6em, 1fr, 1.6em, 1fr, 1.6em, 1fr, 1.6em, 1fr),
+      columns: (1fr, 1.6em, 1.3fr, 1.6em, 1fr),
       align: horizon,
-      step([PR finden], [zum Branch]),
+      step([push], [neuer Stand im PR]),
       arrow,
-      step([Kommentare], [offene Threads]),
+      step([GitHub Actions], [Format · Lint · Tests · PR-Titel]),
       arrow,
-      step([Sortieren], [beheben, beantworten, ablehnen], kind: "warn"),
-      arrow,
-      step([Beheben], [commit + push]),
-      arrow,
-      step([Antworten], [auf Deutsch, dann auflösen], kind: "good"),
+      step([✅ oder ❌], [direkt im PR], kind: "good"),
     )
 
     #v(0.5em)
@@ -637,23 +788,40 @@
       columns: (1fr, 1fr),
       gutter: 12pt,
       align: top,
-      card([Eingebaute Bremsen], kind: "good")[
-        - Kein offener PR → tut nichts.
-        - Fragen werden beantwortet, aber nicht aufgelöst.
-        - Erst push, dann antworten — nie umgekehrt.
-        - Unklarer Kommentar → fragt euch statt zu raten.
+      card([Rot? Gut so.], kind: "bad")[
+        Der Fehler ist gefunden, bevor ihn jemand sieht. *Details* öffnen, Log
+        lesen, im selben Branch beheben, push — die Checks laufen neu.
+        Regeln abschalten gilt nicht.
       ],
-      card([Eure Rolle], kind: "warn")[
-        - Die Sortierung prüfen, bevor er ändert.
-        - Ablehnen ist erlaubt — mit Begründung.
-        - Die Antworten stehen unter eurem Namen: lesen!
+      card([Kommentare im PR], kind: "warn")[
+        Von Menschen — und, falls eingeschaltet, von einem KI-Reviewer wie
+        GitHub Copilot. Jeden bewerten, beantworten und auflösen: berechtigt
+        → beheben, sonst begründet ablehnen.
       ],
     )
+  ]
 
-    #v(0.5em)
-    #text(fill: meko_green, weight: "bold")[
-      Aufruf auf eurem PR-Branch: `/pr-fix` — der Agent arbeitet, ihr prüft.
-    ]
+  #content-slide(
+    [🛠 Etappe 4: Checks],
+    notes: "~10 Min · Demo demo/rote-ci, falls bei niemandem was rot ist · nie Regeln abschalten · KI-Review (falls eingeschaltet) dauert ein paar Minuten · Kommentare bewerten, nicht blind umsetzen · Threads auflösen, sonst kein Merge",
+  )[
+    #set align(left)
+    #aufgabe(
+      10,
+      (
+        [Im PR unten: Checks abwarten — gelb läuft noch, dann grün oder rot.],
+        [Rot? *Details* öffnen, Log lesen, Datei im Editor korrigieren:\
+          #cmd("git commit -am \"fix: sort my entry\"")
+          #cmd("git push")],
+        [Kommentare lesen und beantworten, dann *Resolve conversation*.],
+      ),
+      (
+        [Sind die Checks in meinem PR grün?],
+        [Falls rot: Lies das Log und behebe den Fehler — ohne Regeln abzuschalten.],
+        [Fass die Kommentare in meinem PR zusammen. Was davon ist berechtigt?],
+      ),
+      [Alle Checks grün, jeder Kommentar beantwortet und aufgelöst — vorher lässt sich nicht mergen.],
+    )
   ]
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -678,11 +846,11 @@
       gutter: 14pt,
       card([Ihr als Reviewer:in], kind: "good")[
         - Passt der PR zum Issue — und *nur* dazu?
-        - Selbst ansehen, nicht nur dem Agenten glauben
+        - Selbst ansehen — gern lokal ausprobieren
         - Ist der Titel ein guter Changelog-Eintrag?
         - Konkret kommentieren: *was* und *warum*
       ],
-      card([Der KI-Reviewer], kind: "warn")[
+      card([Ein KI-Reviewer (falls eingeschaltet)], kind: "warn")[
         - Prüft gegen `AGENTS.md`, schnell und gründlich
         - Kennt aber euer Ziel nicht — und kann irren
         - *Gibt nichts frei* — das macht immer ein Mensch
@@ -692,35 +860,41 @@
 
   #content-slide(
     [🛠 Etappe 5: Review],
-    notes: "~10 Min · Review-Ring: Reviewer steht im Issue · Freigabe selbst im Browser klicken, nicht vom Agenten · der Agent holt den fremden Branch von origin → Etappe 1",
+    notes: "~10 Min · Review-Ring: Reviewer steht im Issue · git fetch holt die fremden Branches von origin → Etappe 1 · git switch wechselt auf den fremden Branch, index.html zeigt dessen Stand · Freigabe immer selbst im Browser klicken, auch wer einen KI-Assistenten nutzt",
   )[
     #set align(left)
     #aufgabe(
       10,
       (
+        [Im eigenen PR rechts bei *Reviewers* die Person aus eurem Issue eintragen.],
+        [*Pull requests* → *Review requests*: den PR öffnen, den ihr prüfen sollt, und *Files changed* lesen.],
+        [Lokal ausprobieren: #cmd("git fetch") #cmd("git switch feat/8-teamwand-ben") — `index.html` neu laden.],
+        [*Review changes* → *Approve* oder *Request changes*, mit Kommentar.],
+      ),
+      (
         [Fordere für meinen PR ein Review von der Person an, die in meinem Issue steht.],
         [Welche PRs soll ich reviewen?],
         [Hol mir diesen PR auf den Rechner und fass zusammen: Passt er zum Issue und zu AGENTS.md?],
       ),
-      [Den fremden PR im Browser ansehen und *selbst* freigeben oder Änderungen anfordern.],
+      [Freigeben klickt ihr *selbst* im Browser — und nur, was ihr selbst angesehen habt.],
     )
   ]
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Section: Etappe 6 — Merge & Staging
+  // Section: Etappe 6 — Merge & Deployment
   // ─────────────────────────────────────────────────────────────────────────
 
   #etappe(
     6,
-    [Merge & Staging],
-    notes: "jetzt ändert sich main auf GitHub · alle anderen müssen nachziehen",
+    [Merge & Deployment],
+    notes: "jetzt ändert sich main auf GitHub · alle anderen müssen nachziehen · nach dem Merge geht die Seite automatisch neu raus",
   )[
-    Ab in `main` — und automatisch auf Staging.
+    Ab in `main` — und automatisch auf die Seite.
   ]
 
   #content-slide(
     [Merge-Konflikt — keine Panik],
-    notes: "jeder Merge ändert main · wer direkt neben euch in team.js steht, bekommt einen Konflikt · falls keiner auftritt: Demo mit demo/konflikt-a + b · beide Zeilen behalten",
+    notes: "jeder Merge ändert main · wer direkt neben euch in team.js steht, bekommt einen Konflikt · falls keiner auftritt: Demo mit demo/konflikt-a + b · GitHub zeigt im PR 'This branch has conflicts' mit Button 'Resolve conflicts' · Markierungszeilen löschen, beide Einträge behalten · 'Mark as resolved', 'Commit merge' · danach laufen die Checks neu",
   )[
     #set align(left)
     Zwei PRs ändern *dieselbe Stelle*. Wer zuerst merged, gewinnt — der andere muss nachziehen.
@@ -744,16 +918,34 @@
       ],
     )
     #v(0.6em)
-    #prompt[Mein PR hat einen Konflikt mit main. Löse ihn so, dass beide Einträge erhalten bleiben, und erklär mir, was du gemacht hast.]
+    #grid(
+      columns: (1fr, 1fr),
+      gutter: 14pt,
+      align: top,
+      [
+        #set text(size: 0.8em)
+        *Selbst:* Im PR *Resolve conflicts* klicken, die Markierungszeilen
+        löschen, beide Einträge behalten → *Mark as resolved* → *Commit merge*.
+      ],
+      [
+        #set text(size: 0.8em)
+        *KI-Assistent:* #prompt[Mein PR hat einen Konflikt mit main. Löse ihn so, dass beide Einträge erhalten bleiben, und erklär mir, was du gemacht hast.]
+      ],
+    )
   ]
 
   #content-slide(
-    [🛠 Etappe 6: Merge & Staging],
-    notes: "~15 Min · nacheinander mergen, nicht alle gleichzeitig · Konflikt → Folie vorher · Staging braucht ein paar Minuten · danach lokal holen: euer Rechner kennt den neuen Stand sonst nicht (Etappe 1!)",
+    [🛠 Etappe 6: Merge & Deployment],
+    notes: "~15 Min · nacheinander mergen, nicht alle gleichzeitig · Konflikt → Folie vorher · Deployment braucht ein paar Minuten (Actions-Tab: pages) · danach lokal holen: euer Rechner kennt den neuen Stand sonst nicht (Etappe 1!) · -D statt -d: nach einem Squash-Merge erkennt Git den Branch nicht als gemerged",
   )[
     #set align(left)
     #aufgabe(
       15,
+      (
+        [Freigegeben und grün? Im PR *Squash and merge* — einer nach dem anderen.],
+        [Lokal auf den neuen Stand: #cmd("git switch main") #cmd("git pull")],
+        [Alten Branch löschen: #cmd("git branch -D feat/7-teamwand-anna")],
+      ),
       (
         [Ist mein PR freigegeben und grün? Dann merge ihn.],
         [Hol den neuesten Stand von main auf meinen Rechner.],
@@ -764,20 +956,20 @@
   ]
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Section: Etappe 7 — Release & Prod
+  // Section: Etappe 7 — Release
   // ─────────────────────────────────────────────────────────────────────────
 
   #etappe(
     7,
-    [Release & Prod],
+    [Release],
     notes: "alle zusammen · Release-PR auf dem Beamer",
   )[
-    Was auf Staging läuft, geht jetzt live.
+    Alle Änderungen bekommen eine neue Versionsnummer.
   ]
 
   #content-slide(
     [Release — Versionen aus PR-Titeln],
-    notes: "release-please läuft nach jedem Merge · hält EINEN Release-PR offen · Changelog = eure PR-Titel · Merge des Release-PR = neue Version → Prod mit genau dem Stand von Staging",
+    notes: "release-please läuft nach jedem Merge · hält EINEN Release-PR offen · Changelog = eure PR-Titel · Merge des Release-PR = neue Version + GitHub-Release · in echten Projekten geht genau dieser Stand dann nach Prod, hier zeigt die Seite die neue Version im Footer",
   )[
     #set align(left)
     #grid(
@@ -789,12 +981,12 @@
         #v(0.3em)
         - Changelog aus euren *PR-Titeln*
         - neue Versionsnummer
-        - Merge des Release-PRs → *Prod*
+        - Merge des Release-PRs → *neue Version*
 
         #v(0.3em)
         #text(
           size: 0.85em,
-        )[Prod bekommt genau den Stand, der schon auf Staging lief.]
+        )[In echten Projekten geht genau dieser Stand dann nach Prod. Hier zeigt die Seite die neue Version im Footer.]
       ],
       card([chore(main): release 0.2.0])[
         #set text(size: 0.9em)
@@ -811,20 +1003,25 @@
   ]
 
   #content-slide(
-    [🛠 Etappe 7: Release & Prod],
-    notes: "~15 Min · alle zusammen am Beamer · Changelog gemeinsam lesen: welche Titel sind gut? · jemand anderes als der Trainer gibt frei · Prod im Browser, Version im Footer · Rollback = Revert-PR + neues Release",
+    [🛠 Etappe 7: Release],
+    notes: "~15 Min · alle zusammen am Beamer · Changelog gemeinsam lesen: welche Titel sind gut? · jemand anderes als der Trainer gibt frei · Seite im Browser, Version im Footer · Rollback = Revert-PR + neues Release",
   )[
     #set align(left)
     #aufgabe(
       15,
       (
+        [*Pull requests* → `chore(main): release …` öffnen und den Changelog lesen.],
+        [Gemeinsam: freigeben und mergen.],
+        [Reiter *Actions*: Ist `pages` durchgelaufen? Unter *Releases* steht die neue Version.],
+      ),
+      (
         [Zeig mir den offenen Release-PR und fass den Changelog zusammen.],
         [Ist die Release-Pipeline nach dem Merge durchgelaufen?],
       ),
-      [Gemeinsam: Changelog verständlich? Freigeben und mergen — dann `meko-christian.github.io/workshop-teamwand` öffnen, Version unten auf der Seite prüfen.],
+      [`meko-christian.github.io/workshop-teamwand` neu laden — steht unten die neue Version?],
     )
-    #v(0.6em)
-    #card([Und wenn Prod kaputt ist?], kind: "warn")[
+    #v(0.5em)
+    #card([Und wenn die neue Version kaputt ist?], kind: "warn")[
       Kein Hotfix per Hand: Änderung per Revert-PR zurücknehmen — gleicher Weg, auch unter Zeitdruck.
     ]
   ]
@@ -838,19 +1035,20 @@
       columns: (1fr, 1fr),
       gutter: 14pt,
       card([Der Ablauf], kind: "good")[
-        Klonen → Branch → Commit → Push → PR → Checks → Review → Merge → Staging → Release → Prod
+        Klonen → Branch → Commit → Push → PR → Checks → Review → Merge → Deployment → Release
         #v(0.3em)
         Jede Änderung, jedes Mal. Gerade die kleinen.
       ],
       card([Weiterüben])[
         Issues mit Label `bonus`: kleine Features mit Test — gleicher Weg.
         #v(0.3em)
-        Für euer eigenes Projekt: Vorlage `MeKo-Tech/go-react-template`.
+        Für euer eigenes Projekt: `main` schützen (Ruleset), CI als Pflicht,
+        Squash-Merge, PR-Titel nach Conventional Commits.
       ],
     )
     #v(0.6em)
     #text(fill: meko_green, weight: "bold")[
-      Der Agent tippt. Verantwortlich seid ihr — und das Review ist eure Unterschrift.
+      Ob ihr tippt oder ein KI-Assistent: Verantwortlich seid ihr — und das Review ist eure Unterschrift.
     ]
   ]
 
@@ -944,7 +1142,7 @@
 
   #content-slide(
     [Merge oder Rebase — was heißt das für uns?],
-    notes: "Teamwand und unsere Repos: nur Squash-Merge · der ganze PR wird EIN Commit auf main, Titel = PR-Titel · deshalb ist main immer linear, egal ob ihr im Branch merged oder rebased · im Branch: Merge ist der sichere Standard, auch der Button 'Update branch' auf GitHub macht das · Rebase schreibt die History um → push wird abgelehnt, braucht --force-with-lease · goldene Regel: nie rebasen, was andere schon haben · main ist gegen force push geschützt · Konflikte gibt es bei beiden Wegen, beim Rebase evtl. pro Commit einmal",
+    notes: "Teamwand: nur Squash-Merge · der ganze PR wird EIN Commit auf main, Titel = PR-Titel · deshalb ist main immer linear, egal ob ihr im Branch merged oder rebased · im Branch: Merge ist der sichere Standard, auch der Button 'Update branch' auf GitHub macht das · Rebase schreibt die History um → push wird abgelehnt, braucht --force-with-lease · goldene Regel: nie rebasen, was andere schon haben · main ist gegen force push geschützt · Konflikte gibt es bei beiden Wegen, beim Rebase evtl. pro Commit einmal",
   )[
     #set align(left)
     #grid(
@@ -972,8 +1170,10 @@
       `main` ist deshalb gegen force push gesperrt.
     ]
 
-    #v(0.5em)
-    #prompt[Bring meinen Branch auf den Stand von main — per Merge, nicht per Rebase.]
+    #v(0.3em)
+    #set text(size: 0.8em)
+    *Selbst:* im PR *Update branch* — oder lokal #cmd("git fetch") #cmd("git merge origin/main") #cmd("git push")\
+    *KI-Assistent:* #prompt[Bring meinen Branch auf den Stand von main — per Merge, nicht per Rebase.]
   ]
 ]
 

@@ -2,8 +2,8 @@
 
 Spielwiese für den Workshop „Git & GitHub“. Eine statische Seite, auf der
 sich alle Teilnehmenden mit Emoji und Motto eintragen – und an der wir den
-kompletten Ablauf üben: Branch, Pull Request, CI, KI-Review, Review durch einen
-Menschen, Merge, Deployment, Release.
+kompletten Ablauf üben: Branch, Commit, Pull Request, CI, Review durch einen
+Menschen, Merge, Deployment, Release. Vorkenntnisse braucht ihr keine.
 
 Die Seite: https://meko-christian.github.io/workshop-teamwand/ – nach jedem
 Merge in `main` aktualisiert (GitHub Pages). Der Merge des Release-PRs zeigt die
@@ -21,4 +21,5 @@ neue Version im Footer.
 
 ## Regeln
 
-Siehe [AGENTS.md](AGENTS.md) – die gelten für euch und für euren Agenten.
+Siehe [AGENTS.md](AGENTS.md) – die gelten für euch und für KI-Assistenten, falls
+ihr einen nutzt.
