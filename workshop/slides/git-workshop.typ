@@ -60,8 +60,9 @@
 
   // Exercise slide body. Left: the steps, with the git command or the click on
   // github.com. Right: the same steps as prompts for an AI assistant. Below:
-  // what to check by yourself, whichever way you went.
-  #let aufgabe(minuten, schritte, prompts, selbst) = {
+  // what to check by yourself, whichever way you went — again as a command or
+  // click on the left and as a question for an AI assistant on the right.
+  #let aufgabe(minuten, schritte, prompts, selbst, selbst-prompt) = {
     let nummeriert(items, fill, stroke, render) = stack(
       spacing: 6pt,
       ..items
@@ -101,7 +102,13 @@
       ],
     )
     v(0.5em)
-    [*Selbst prüfen:* #selbst]
+    grid(
+      columns: (2fr, 1fr),
+      column-gutter: 16pt,
+      align: top,
+      [*Selbst prüfen:* #selbst],
+      [#text(fill: meko_grey, weight: "bold")[Oder fragt:] #prompt(selbst-prompt)],
+    )
   }
 
   // The stages of the workshop. Every stage section shows this bar with the
@@ -152,7 +159,7 @@
 
   #title-slide(
     title: [Git & GitHub Workshop],
-    subtitle: [Eine Änderung von der Idee bis auf die Webseite],
+    subtitle: [Arbeiten mit Git über GitHub],
     authors: [Christian Budde],
     notes: "Begrüßung · heute keine Vorlesung · ihr macht es selbst · eine Änderung, Schritt für Schritt bis auf die Seite",
   )
@@ -166,9 +173,8 @@
     notes: "keine Vorkenntnisse nötig: jeder Begriff kommt, wenn wir ihn brauchen · echtes Repo, echte Pipeline, echtes Review · EINE Änderung pro Person · alle gehen gemeinsam Etappe für Etappe · Befehle stehen auf jeder Übungsfolie · KI-Assistent ist erlaubt, ersetzt aber nicht das Verstehen",
   )[
     #set align(left)
-    Heute spielt ihr den *kompletten Weg einer Änderung* selbst durch — so, wie
-    Softwareteams mit Git und GitHub arbeiten. Am Beispiel-Repo „Teamwand“.
-    Vorkenntnisse braucht ihr keine: Jeder Begriff kommt, wenn wir ihn brauchen.
+    Heute spielt ihr den *kompletten Weg einer Änderung* selbst durch. Am Beispiel-Repo „Teamwand“.
+    Vorkenntnisse braucht ihr keine: Jeder Begriff wird eingeführt, wenn wir ihn brauchen.
 
     #v(0.5em)
     *Eine Änderung pro Person:* jede:r trägt sich in die Teamwand ein.
@@ -178,8 +184,8 @@
     #align(center, etappen(0, on-dark: false))
 
     #v(0.7em)
-    *Jede Übung zeigt die Befehle zum Selbertippen — und daneben die Sätze für
-    einen KI-Assistenten, falls ihr einen nutzt. Prüfen müsst ihr selbst.*
+    *Jede Übung zeigt die Befehle zum Selbertippen — mit Beispielprompts für
+    einen KI-Assistenten.*
   ]
 
   #content-slide(
@@ -189,7 +195,6 @@
     #set align(left)
     *Jede Änderung* — egal wie klein — nimmt diesen Weg:
 
-    #v(0.4em)
     #grid(
       columns: (1fr, 1.6em, 1fr, 1.6em, 1fr, 1.6em, 1fr, 1.6em, 1fr),
       align: horizon,
@@ -203,12 +208,48 @@
       arrow,
       step([Review], [ein Mensch], kind: "good"),
     )
-    #v(0.3em)
-    #align(right, text(
-      size: 0.85em,
-      fill: meko_body,
-    )[↓ Merge in `main`#h(5.5em)])
-    #v(0.3em)
+    // Hand-off between the rows: an S-curve from Review (last top column) to
+    // Deployment (first bottom column), passing the approval gate. The column
+    // centres follow from the two grids' column specs below and above.
+    #block(above: 0.3em, below: 0.3em, layout(size => {
+      let w = size.width
+      let gap = 1.6em.to-absolute()
+      let x0 = w - (w - 4 * gap) / 5 / 2
+      let x1 = (w - 3 * gap) / 4 / 2
+      let hgt = 3.2em.to-absolute()
+      let tip = 7pt
+      // Review is one text line shorter than its row (horizon-aligned), so the
+      // curve starts above the block to meet the card's bottom edge.
+      let lead = 10pt
+      block(width: w, height: hgt, {
+        place(curve(
+          stroke: 1.5pt + meko_green,
+          curve.move((x0, -lead)),
+          curve.cubic((x0, hgt * 0.75), (x1, hgt * 0.25), (x1, hgt - tip)),
+        ))
+        place(polygon(
+          fill: meko_green,
+          (x1 - 4.5pt, hgt - tip),
+          (x1 + 4.5pt, hgt - tip),
+          (x1, hgt),
+        ))
+        place(center + horizon, box(
+          fill: meko_green.lighten(90%),
+          stroke: 1pt + meko_green,
+          radius: 999pt,
+          inset: (x: 10pt, y: 5pt),
+          {
+            show raw: set text(size: 11.5pt)
+            set text(size: 0.8em, fill: meko_grey)
+            text(fill: meko_green, weight: "bold")[✓ Approval]
+            h(0.5em)
+            sym.arrow.r
+            h(0.5em)
+            [Merge in `main`]
+          },
+        ))
+      })
+    }))
     #grid(
       columns: (1fr, 1.6em, 1fr, 1.6em, 1fr, 1.6em, 1fr),
       align: horizon,
@@ -221,10 +262,9 @@
       step([Release], [Version auf der Seite], kind: "warn"),
     )
 
-    #v(0.4em)
     #text(size: 0.75em)[
-      In echten Projekten gibt es dafür meist zwei Umgebungen: *Staging* nach
-      jedem Merge, *Prod* erst mit dem Release. Die Teamwand hat eine Seite für
+      In echten Projekten gibt es dafür meist mindestens zwei Umgebungen: *Staging* (nach
+      jedem Merge), *Prod* erst mit dem Release. Die Teamwand hier hat nur eine Seite für
       beides.
     ]
 
@@ -431,6 +471,7 @@
         [Welche Issues sind mir auf GitHub zugewiesen?],
       ),
       [`index.html` im Browser öffnen — die Seite läuft bei euch lokal.],
+      [Öffne die Teamwand lokal im Browser.],
     )
   ]
 
@@ -451,8 +492,7 @@
     notes: "main = der gemeinsame, abgestimmte Stand · beim Klonen bekommt ihr main · Name ist frei wählbar: früher meist master, heute meist main · in diesem Repo: jeder Merge in main geht automatisch auf die Seite (in echten Projekten: Staging) · neue Arbeit immer vom neuesten main starten → erst pull",
   )[
     #set align(left)
-    `main` ist die *Hauptlinie* des Projekts: der Stand, auf den sich alle
-    geeinigt haben. Beim Klonen bekommt ihr genau diesen Stand.
+    `main` ist die *Hauptlinie* des Projekts. Beim Klonen bekommt ihr genau diesen Stand.
 
     #let commit(pos) = node(
       pos,
@@ -501,8 +541,7 @@
       gutter: 12pt,
       align: top,
       card([Nur ein Name])[
-        Der Name ist frei wählbar. Früher hieß die Hauptlinie meist `master`,
-        heute meist `main`.
+        Der Name der Hauptlinie ist frei gewählt. Früher hat man es üblicherweise `master` genannt, heute meist `main`.
       ],
       card([Geht auf die Seite], kind: "warn")[
         In diesem Repo landet jeder Merge in `main` automatisch auf der Seite —
@@ -650,9 +689,10 @@
         [Ich will eine Änderung machen. Leg dafür einen Branch nach AGENTS.md an.],
         [Erstelle eine persönliche Karte für mich — Name, Emoji, Motto.],
         [Zeig mir das Ergebnis lokal im Browser.],
-        [Committe das. Noch nicht hochladen.],
+        [Committe das.],
       ),
       [#cmd("git status") — alles committet? Und auf GitHub: Gibt es euren Branch dort schon?],
+      [Ist alles committet? Gibt es meinen Branch schon auf GitHub?],
     )
   ]
 
@@ -673,8 +713,8 @@
     notes: "PR = Bitte: nehmt meinen Branch in main auf · gibt es nur auf GitHub, nicht in Git selbst · alles an einem Ort: Änderungen (Files changed), Diskussion, Checks, Review, Merge-Button · weitere Commits auf dem Branch landen automatisch im selben PR · Closes #N schließt das Issue beim Merge",
   )[
     #set align(left)
-    Ein Pull Request ist die *Bitte*: „Nehmt meinen Branch in `main` auf.“
-    Er existiert nur auf GitHub — und bündelt alles, was dafür nötig ist:
+    Ein Pull Request (PR) ist die *Bitte*: „Nehmt meinen Branch in `main` auf.“
+    Der PR existiert nur auf GitHub — und bündelt alles, was dafür nötig ist:
 
     #v(0.4em)
     #grid(
@@ -703,7 +743,7 @@
     notes: "Conventional Commits · beim Merge wird der PR-Titel DER Commit auf main · release-please baut daraus Changelog und Version · deshalb prüft CI den Titel",
   )[
     #set align(left)
-    Der Titel des Pull Requests landet später *wörtlich* in den Release-Notes. Darum hat er eine feste Form:
+    Der Titel des Pull Requests landet (in unserer Konfiguration) später *wörtlich* in den Release-Notes. Darum hat er bei uns eine feste Form:
 
     #v(0.5em)
     #align(center, text(size: 1.2em)[`typ: was sich ändert`])
@@ -748,6 +788,7 @@
         [Gib mir den Link zum PR.],
       ),
       [Im PR unter *Files changed*: Titel verständlich? Nur eure eine Zeile geändert?],
+      [Was ändert mein PR genau? Passt der Titel zu AGENTS.md?],
     )
   ]
 
@@ -821,6 +862,7 @@
         [Fass die Kommentare in meinem PR zusammen. Was davon ist berechtigt?],
       ),
       [Alle Checks grün, jeder Kommentar beantwortet und aufgelöst — vorher lässt sich nicht mergen.],
+      [Sind alle Checks grün und alle Kommentare aufgelöst?],
     )
   ]
 
@@ -833,7 +875,7 @@
     [Review],
     notes: "Vier-Augen-Prinzip · jede:r reviewt den PR einer anderen Person · Reviewer steht im Issue",
   )[
-    Vier Augen: Ein Mensch gibt frei — nie der Autor selbst.
+    Das Vier-Augen-Prinzip: Ein Mensch gibt den PR frei.
   ]
 
   #content-slide(
@@ -877,6 +919,7 @@
         [Hol mir diesen PR auf den Rechner und fass zusammen: Passt er zum Issue und zu AGENTS.md?],
       ),
       [Freigeben klickt ihr *selbst* im Browser — und nur, was ihr selbst angesehen habt.],
+      [Wurde mein PR freigegeben — und von wem?],
     )
   ]
 
@@ -951,7 +994,8 @@
         [Hol den neuesten Stand von main auf meinen Rechner.],
         [Lösch meinen alten Branch lokal.],
       ),
-      [Nach ein paar Minuten `meko-christian.github.io/workshop-teamwand` öffnen: Seid ihr auf der Seite zu sehen?],
+      [#cmd("git log --oneline -3") — steht euer Commit in main? Nach ein paar Minuten `meko-christian.github.io/workshop-teamwand` öffnen: Seid ihr auf der Seite zu sehen?],
+      [Ist mein Commit in main — und schon auf der Seite live?],
     )
   ]
 
@@ -1019,6 +1063,7 @@
         [Ist die Release-Pipeline nach dem Merge durchgelaufen?],
       ),
       [`meko-christian.github.io/workshop-teamwand` neu laden — steht unten die neue Version?],
+      [Welche Version zeigt die Seite jetzt?],
     )
     #v(0.5em)
     #card([Und wenn die neue Version kaputt ist?], kind: "warn")[
