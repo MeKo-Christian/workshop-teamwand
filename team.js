@@ -3,6 +3,6 @@
 // sorted position, not at the end; the CI test checks this.
 window.TEAM = [
   // keep-sorted start
-  { login: "MeKo-Christian", name: "Christian Budde", emoji: "🎛️", motto: "Erst messen, dann meinen." },
+  { login: "MeKo-Christian", name: "Christian Budde", emoji: "🎛️", motto: "Erst messen, dann meinen.", effect: "hack" },
   // keep-sorted end
 ];

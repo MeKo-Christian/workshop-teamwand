@@ -69,6 +69,74 @@ body {
   font-style: italic;
 }
 
+/* Cards with an effect get a button that stops the motion (WCAG 2.2.2). */
+.effect-toggle {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.4rem;
+  font-size: 1rem;
+  line-height: 1;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.effect-toggle:hover {
+  background: var(--bg);
+}
+
+.effect-toggle:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* With reduced motion the effects don't run, so there is nothing to stop. */
+@media (prefers-reduced-motion: reduce) {
+  .effect-toggle {
+    display: none;
+  }
+}
+
+/* Effect "hack": app.js draws a glitching copy of the card on a canvas. The real
+   content stays underneath, invisible but readable by screen readers and clickable.
+   .card--hack-live is only set while the effect runs; otherwise it is a normal card. */
+.card--hack {
+  position: relative;
+  overflow: hidden;
+}
+
+.hack-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.card--hack-live {
+  background: #05080d;
+  border-color: #00f0ff;
+}
+
+.card--hack-live > :is(.emoji, .name, .login, .motto) {
+  opacity: 0;
+}
+
+/* position: relative lifts the link above the canvas, so the focus ring shows. */
+.card--hack-live > .login:focus-visible {
+  position: relative;
+  color: #ffffff;
+  opacity: 1;
+  outline: 2px solid #00f0ff;
+  outline-offset: 2px;
+}
+
+.card--hack-live .effect-toggle {
+  border-color: #00f0ff;
+}
+
 .footer {
   padding: 2rem 1rem;
   text-align: center;
